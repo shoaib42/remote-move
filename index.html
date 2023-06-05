@@ -5,70 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Move</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <script type="text/javascript" src="/static/app.js"></script>
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            border-radius: 5px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .button-container {
-            text-align: center;
-        }
-
-        .button-container button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4caf50;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .button-container button:hover {
-            background-color: #45a049;
-        }
-
-        .message {
-            text-align: center;
-            margin-top: 20px;
-            font-weight: bold;
-        }
-    </style>
 </head>
 
 <body>
@@ -76,89 +15,30 @@
         <h1>File Move</h1>
         <form id="moveForm">
             <div class="form-group">
-                <label for="collections">Collections:</label>
-                <select id="collections" name="collections" multiple>
-                    {{ range .Collection }}
-                    <option value="{{ . }}">{{ . }}</option>
-                    {{ end }}
+                <label for="sourceDirs">Source directory</label>
+                <select id="sourceDirs" name="sourceDirs">
+                    <option disabled selected value> -- select an source directory -- </option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="location">Location:</label>
-                <select id="location" name="location">
-                    {{ range .Location }}
-                    <option value="{{ . }}">{{ . }}</option>
-                    {{ end }}
+                <label for="items">Items</label>
+                <select id="items" name="items" multiple>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="destinationDirs">Destition Directory</label>
+                <select id="destinationDirs" name="destinationDirs">
+                    <option disabled selected value> -- select an destination directory -- </option>
                 </select>
             </div>
             <div class="button-container">
-                <button type="submit">Move</button>
+                <button id="moveButton" type="submit">Move</button>
+                <button id="copyButton" type="submit">Copy</button>
             </div>
         </form>
-        <p id="message" class="message"></p>
+        <p id="listingMessage" class="listingMessage"></p>
+        <p id="opMessage" class="opMessage"></p>
     </div>
-
-    <script>
-        // Function to handle form submission
-        function handleFormSubmit(event) {
-            event.preventDefault();
-
-            // Get selected collections and location
-            const collections = Array.from(document.getElementById("collections").selectedOptions).map(option => option.value);
-            const location = document.getElementById("location").value;
-
-            // Create payload object
-            const payload = {
-                collections: collections,
-                location: location
-            };
-
-            // Send POST request to the server
-            fetch("/move", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Display success message
-                    const messageElement = document.getElementById("message");
-                    messageElement.textContent = "Files moved successfully.";
-                    messageElement.style.color = "green";
-
-                    // Update the collections dropdown with the updated list
-                    const collectionsDropdown = document.getElementById("collections");
-                    collectionsDropdown.innerHTML = "";
-                    data.collection.forEach(item => {
-                        const option = document.createElement("option");
-                        option.value = item;
-                        option.textContent = item;
-                        collectionsDropdown.appendChild(option);
-                    });
-
-                    // Update the locations dropdown with the updated list
-                    const locationsDropdown = document.getElementById("location");
-                    locationsDropdown.innerHTML = "";
-                    data.location.forEach(item => {
-                        const option = document.createElement("option");
-                        option.value = item;
-                        option.textContent = item;
-                        locationsDropdown.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    // Display error message
-                    const messageElement = document.getElementById("message");
-                    messageElement.textContent = "An error occurred while moving files.";
-                    messageElement.style.color = "red";
-                });
-        }
-
-        // Attach form submission event listener
-        document.getElementById("moveForm").addEventListener("submit", handleFormSubmit);
-    </script>
 </body>
 
 </html>

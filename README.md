@@ -23,11 +23,6 @@ DIY setup a service,
 
 Modify and use as you like.
 
-***
-
-## Was chatGPT used?
-
-Shhhh! Only for the front end, I'm not a front end guy. chatGPT sucks with pretty much everything else.
 
 ***
 

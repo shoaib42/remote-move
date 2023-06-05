@@ -1,21 +1,20 @@
 # this is the source directory where the files you want to move from
-dnDir: /home/shoaib42/forjf/file_exchange
+srcDirs: 
+  - /home/shoaib/forjf/file_exchange
+  - /home/shoaib/tmp
 # this is the root directory where you have subdirs to which you want
 # to move files to, ex: /home/shoaib42/forjf/movies /home/shoaib42/forjf/docs
-rootDir: /home/shoaib42/forjf
-# a list of subdirs in the root dir that you want to exclude, ie you dont want
-# to move any files there
-excludeInRootDir:
+destRootDir: /home/shoaib/forjf
+# a list of subdirs you want to exclude from being listed
+excludeDirs:
   - lost+found
   - file_exchange
   - uncat
-# similar to above, but you want to exclude certain files / directories from you dnDir
-excludeInTxmnDir: []
 # a list of cidrs, from where the client can connect
 allowedCIDRs:
   - 127.0.0.1/32
   - 192.168.0.0/24
 serverBindAddr: 127.0.0.1
-serverBindPort: 8088
+serverBindPort: 8089
 # the usrId and grpId to chown to, happens after the move.
-chownUsrGrp: 1001:1001
+chownUsrGrp: 1000:1000
