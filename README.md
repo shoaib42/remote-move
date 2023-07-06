@@ -23,22 +23,15 @@ DIY setup a service,
 
 Modify and use as you like.
 
-***
-
-## Was chatGPT used?
-
-Shhhh! Only for the front end, I'm not a front end guy. chatGPT sucks with pretty much everything else.
 
 ***
 
 ## Look and feel
 ***
 ### Web
-![Web](/img/web.png)
-***
-Select multiple
+Choose source directory and select multiple (Copy is not implemented)
 
-![Select multiple](/img/move_selected.png)
+![Select multiple](/img/select.png)
 
 ***
 
