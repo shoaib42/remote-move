@@ -29,11 +29,9 @@ Modify and use as you like.
 ## Look and feel
 ***
 ### Web
-![Web](/img/web.png)
-***
-Select multiple
+Choose source directory and select multiple (Copy is not implemented)
 
-![Select multiple](/img/move_selected.png)
+![Select multiple](/img/select.png)
 
 ***
 
