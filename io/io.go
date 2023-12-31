@@ -61,6 +61,15 @@ func checkIfExists(path string) bool {
 	return os.IsExist(err)
 }
 
+func (i *IoConf) doChown(dest string) error {
+	return filepath.Walk(dest, func(name string, info os.FileInfo, err error) error {
+		if nil == err {
+			err = os.Chown(name, i.uid, i.gid)
+		}
+		return err
+	})
+}
+
 func (i *IoConf) DoCpChown(from, what, where string) error {
 	return errors.New("Copying is not implemented")
 }
@@ -105,12 +114,7 @@ func (i *IoConf) doMvChown(from, what, where string) error {
 		return err
 	}
 
-	return filepath.Walk(dest, func(name string, info os.FileInfo, err error) error {
-		if nil == err {
-			err = os.Chown(name, i.uid, i.gid)
-		}
-		return err
-	})
+	return i.doChown(dest)
 }
 
 func (i *IoConf) DoMvChown(from, what, where string) error {
