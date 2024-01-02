@@ -2,6 +2,7 @@ package io
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -70,17 +71,13 @@ func (i *IoConf) doChown(dest string) error {
 	})
 }
 
-func (i *IoConf) DoCpChown(from, what, where string) error {
-	return errors.New("Copying is not implemented")
-}
-
-func (i *IoConf) doMvChown(from, what, where string) error {
+func (i *IoConf) checkCopyOrMoveValid(from, what, where string) error {
 	dest := i.destRootDir + "/" + where
 	if from == "" {
 		return errors.New("source directory was not provided")
 	}
 	if what == "" {
-		return errors.New("file/dir to move was not provided")
+		return errors.New("file/dir to move|copy was not provided")
 	}
 	if where == "" {
 		return errors.New("destination directory was not provided")
@@ -106,11 +103,88 @@ func (i *IoConf) doMvChown(from, what, where string) error {
 	if !find(destDirs, where) {
 		return errors.New("destination directory not accessible")
 	}
+	return nil
+}
+
+// Start https://stackoverflow.com/questions/51779243/copy-a-folder-in-go
+func copyDir(src, dest string) error {
+
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// copy to this path
+		outpath := filepath.Join(dest, strings.TrimPrefix(path, src))
+
+		if info.IsDir() {
+			os.MkdirAll(outpath, info.Mode())
+			return nil // means recursive
+		}
+
+		// skip irregular file
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+
+		// copy contents of regular file efficiently
+
+		// open input
+		in, _ := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer in.Close()
+
+		// create output
+		fh, err := os.Create(outpath)
+		if err != nil {
+			return err
+		}
+		defer fh.Close()
+
+		// make it the same
+		fh.Chmod(info.Mode())
+
+		// copy content
+		_, err = io.Copy(fh, in)
+		return err
+	})
+}
+
+// End https://stackoverflow.com/questions/51779243/copy-a-folder-in-go
+
+func (i *IoConf) doCpChown(from, what, where string) error {
+	if err := i.checkCopyOrMoveValid(from, what, where); err != nil {
+		return err
+	}
 
 	src := from + "/" + what
-	dest = dest + "/" + what
-	err = os.Rename(src, dest)
-	if nil != err {
+	dest := i.destRootDir + "/" + where + "/" + what
+
+	if err := copyDir(src, dest); nil != err {
+		return err
+	}
+
+	return i.doChown(dest)
+}
+
+func (i *IoConf) DoCpChown(from, what, where string) error {
+	i.mu.Lock()
+	err := i.doCpChown(from, what, where)
+	i.mu.Unlock()
+	return err
+}
+
+func (i *IoConf) doMvChown(from, what, where string) error {
+	if err := i.checkCopyOrMoveValid(from, what, where); err != nil {
+		return err
+	}
+
+	src := from + "/" + what
+	dest := i.destRootDir + "/" + where + "/" + what
+
+	if err := os.Rename(src, dest); nil != err {
 		return err
 	}
 

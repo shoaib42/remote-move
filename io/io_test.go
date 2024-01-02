@@ -2,6 +2,7 @@ package io
 
 import (
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -21,7 +22,15 @@ func mock_data() *conf.Configuration {
 	for _, p := range srcDirs {
 		os.MkdirAll(p, os.ModePerm)
 		for _, d := range dirsCreate {
-			os.MkdirAll(p+"/"+d, os.ModePerm)
+			lvl1 := p + "/" + d
+			os.MkdirAll(lvl1, os.ModePerm)
+			for _, d2 := range dirsCreate {
+				lvl2 := lvl1 + "/sub" + d2
+				os.MkdirAll(lvl2, os.ModePerm)
+				for _, f := range filesCreate {
+					os.Create(lvl2 + "/" + f)
+				}
+			}
 		}
 		for _, f := range filesCreate {
 			os.Create(p + "/" + f)
@@ -186,6 +195,74 @@ func TestMove(t *testing.T) {
 		return strings.Compare(filetomove, mup[srcDirs[0]][i])
 	}); found {
 		t.Fatalf("dir %s should not contain %s", mup[srcDirs[0]], filetomove)
+	}
+
+}
+
+func TestCopy(t *testing.T) {
+	conf := mock_data()
+	defer tearDown()
+	ioh, err := NewIOHelper(conf.SrcDirs, conf.DestRootDir, conf.ExcludeDirs, conf.Uid, conf.Gid)
+	if nil != err {
+		t.Fatalf("Could not create io helper")
+	}
+
+	fileSrcFullPath := srcDirs[0] + "/" + dirsCreate[0]
+	fileDestFullPath := destDirs[0] + "/" + dirsCreate[0]
+	//add a file to copy
+	os.Create(fileSrcFullPath + "/" + "extraFile")
+
+	dest := strings.Replace(destDirs[0], destRootDir+"/", "", 1)
+	err = ioh.DoCpChown(srcDirs[0], dirsCreate[0], dest)
+	if nil != err {
+		t.Fatalf("Failed to move with error %v", err)
+	}
+
+	//check to see if we have the file in the dest and is not in the source
+	_, err = os.Stat(fileDestFullPath)
+	if os.IsNotExist(err) {
+		t.Fatalf("File not found in destination %s, while checking %s", dest, fileDestFullPath)
+	}
+
+	//uid gid not tested!
+
+	_, err = os.Stat(fileSrcFullPath)
+	if os.IsNotExist(err) {
+		t.Fatalf("File not found in source %s, while checking %s", srcDirs[0], fileSrcFullPath)
+	}
+
+	// check if all files copied
+	err = filepath.Walk(fileSrcFullPath, func(name string, info os.FileInfo, err error) error {
+		if nil == err {
+			destloc := filepath.Join(fileDestFullPath, strings.TrimPrefix(name, fileSrcFullPath))
+			_, err = os.Stat(destloc)
+			if os.IsNotExist(err) {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if nil != err {
+		t.Fatalf("Failed comparing source and desitination files")
+	}
+
+	//check source dir if all files exists as before
+	//should be same as that of dir2, dir2 will be source of truth since dir1 has "extraFile"
+	checkAgainst := srcDirs[1] + "/" + dirsCreate[0]
+	err = filepath.Walk(checkAgainst, func(name string, info os.FileInfo, err error) error {
+		if nil == err {
+			destloc := filepath.Join(fileSrcFullPath, strings.TrimPrefix(name, checkAgainst))
+			_, err = os.Stat(destloc)
+			if os.IsNotExist(err) {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if nil != err {
+		t.Fatalf("Failed checking integrity of source file")
 	}
 
 }
