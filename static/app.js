@@ -68,7 +68,7 @@ function refreshOptions() {
   .then(jsonData => populateOptions(jsonData))
 }
 
-function handleMove() {
+function handleOp(op) {
   // event.preventDefault();
   const src = document.getElementById("sourceDirs").value;
   const items = Array.from(document.getElementById("items").selectedOptions).map(option => option.value);
@@ -80,7 +80,7 @@ function handleMove() {
     dest: dest
   };
 
-  fetch("/move", {
+  fetch("/"+op, {
     method: "POST",
     headers: {
         "Content-Type": "application/json"
@@ -89,12 +89,6 @@ function handleMove() {
   })
   .then(response => response.json())
   .then(jsonData => checkCMResponse(jsonData))
-
-}
-
-function handleCopy() {
-  // event.preventDefault();
-  console.log("Yay got in copy")
 
 }
 
@@ -107,9 +101,9 @@ window.onload = function() {
   form.addEventListener("submit", function(event) {
     event.preventDefault();
     if (event.submitter === moveButton) {
-      handleMove();
+      handleMove("move");
     } else if (event.submitter === copyButton) {
-      handleCopy();
+      handleCopy("copy");
     }
   });
 }
