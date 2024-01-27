@@ -29,7 +29,7 @@ Modify and use as you like.
 ## Look and feel
 ***
 ### Web
-Choose source directory and select multiple (Copy is not implemented)
+Choose source directory and select multiple
 
 ![Select multiple](/img/select.png)
 
