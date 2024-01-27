@@ -21,6 +21,7 @@ type RemoteMoveREST interface {
 	ipRestrictionMiddleware(next http.Handler) http.Handler
 	handleData(w http.ResponseWriter, r *http.Request)
 	handleMove(w http.ResponseWriter, r *http.Request)
+	handleCopy(w http.ResponseWriter, r *http.Request)
 }
 
 type Handle struct {
@@ -151,6 +152,7 @@ func (h *Handle) Serve() {
 	restrictedMux := http.NewServeMux()
 	restrictedMux.HandleFunc("/", handleIndex)
 	restrictedMux.HandleFunc("/move", h.handleMove)
+	restrictedMux.HandleFunc("/copy", h.handleCopy)
 	restrictedMux.HandleFunc("/data", h.handleData)
 	restrictedMux.Handle("/static/", staticHandler)
 
@@ -224,6 +226,36 @@ func (h *Handle) handleMove(w http.ResponseWriter, r *http.Request) {
 				Src:       moveRequest.Src + "/" + i,
 				Dest:      moveRequest.Dest,
 				Operation: "move",
+				Message:   err.Error(),
+			})
+		}
+	}
+	w.Header().Set("Allow", "POST")
+	w.Header().Set("Content-Type", "application/json")
+
+	h.responseData(w, mor)
+}
+
+func (h *Handle) handleCopy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var moveRequest MoveRequest
+	err := json.NewDecoder(r.Body).Decode(&moveRequest)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	mor := make([]MoveOpertationResponse, 0)
+	for _, i := range moveRequest.Items {
+		if err = h.filedir.DoCpChown(moveRequest.Src, i, moveRequest.Dest); nil != err {
+			mor = append(mor, MoveOpertationResponse{
+				Src:       moveRequest.Src + "/" + i,
+				Dest:      moveRequest.Dest,
+				Operation: "copy",
 				Message:   err.Error(),
 			})
 		}
