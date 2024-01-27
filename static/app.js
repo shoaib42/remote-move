@@ -101,9 +101,9 @@ window.onload = function() {
   form.addEventListener("submit", function(event) {
     event.preventDefault();
     if (event.submitter === moveButton) {
-      handleMove("move");
+      handleOp("move");
     } else if (event.submitter === copyButton) {
-      handleCopy("copy");
+      handleOp("copy");
     }
   });
 }
