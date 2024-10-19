@@ -1,8 +1,8 @@
 package conf
 
 import (
-	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -21,6 +21,7 @@ type Configuration struct {
 	ChownUsrGrp    string   `yaml:"chownUsrGrp"`
 	Uid            int
 	Gid            int
+	BasePath       string `yaml:"basePath,omitempty"`
 }
 
 var Void VoidT
@@ -28,7 +29,7 @@ var Void VoidT
 var Confs Configuration
 
 func LoadConfiguration(filepath string) error {
-	yamlFile, err := ioutil.ReadFile(filepath)
+	yamlFile, err := os.ReadFile(filepath)
 	if err != nil {
 		return err
 	}

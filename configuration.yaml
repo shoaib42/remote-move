@@ -10,6 +10,8 @@ excludeDirs:
   - lost+found
   - file_exchange
   - uncat
+#base path, helpful when you want to reverse proxy, leading slash is required
+basePath: "/foobar"
 # a list of cidrs, from where the client can connect
 allowedCIDRs:
   - 127.0.0.1/32

@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/shoaib42/remote-move/io"
+	customio "github.com/shoaib42/remote-move/io"
 )
 
 var indexContent []byte
@@ -28,7 +28,8 @@ type Handle struct {
 	allowedCIDRs   []string
 	serverBindAddr string
 	serverBindPort string
-	filedir        io.IOHelpers
+	basePath       string
+	filedir        customio.IOHelpers
 }
 
 type MoveOpertationResponse struct {
@@ -94,14 +95,14 @@ func validateServerBind(bindAddr string, bindPort string) error {
 	return nil
 }
 
-func New(indexFilePath, bindArr, port string, allowedCIDRs []string, ioHelpers io.IOHelpers) (RemoteMoveREST, error) {
+func New(indexFilePath, bindArr, port string, basePath string, allowedCIDRs []string, ioHelpers customio.IOHelpers) (RemoteMoveREST, error) {
 	file, err := os.Open(indexFilePath)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	indexContent, err = ioutil.ReadAll(file)
+	indexContent, err = io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +121,7 @@ func New(indexFilePath, bindArr, port string, allowedCIDRs []string, ioHelpers i
 		allowedCIDRs:   okCIDRs,
 		serverBindAddr: bindArr,
 		serverBindPort: port,
+		basePath:       basePath,
 		filedir:        ioHelpers,
 	}, nil
 }
@@ -148,13 +150,13 @@ func (h *Handle) ipRestrictionMiddleware(next http.Handler) http.Handler {
 }
 
 func (h *Handle) Serve() {
-	staticHandler := http.StripPrefix("/static/", http.FileServer(http.Dir("static")))
+	staticHandler := http.StripPrefix(h.basePath+"/static/", http.FileServer(http.Dir("static")))
 	restrictedMux := http.NewServeMux()
-	restrictedMux.HandleFunc("/", handleIndex)
-	restrictedMux.HandleFunc("/move", h.handleMove)
-	restrictedMux.HandleFunc("/copy", h.handleCopy)
-	restrictedMux.HandleFunc("/data", h.handleData)
-	restrictedMux.Handle("/static/", staticHandler)
+	restrictedMux.HandleFunc(h.basePath+"/", handleIndex)
+	restrictedMux.HandleFunc(h.basePath+"/move", h.handleMove)
+	restrictedMux.HandleFunc(h.basePath+"/copy", h.handleCopy)
+	restrictedMux.HandleFunc(h.basePath+"/data", h.handleData)
+	restrictedMux.Handle(h.basePath+"/static/", staticHandler)
 
 	server := &http.Server{
 		Addr:    h.serverBindAddr + ":" + h.serverBindPort,
