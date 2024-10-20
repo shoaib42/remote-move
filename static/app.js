@@ -57,8 +57,10 @@ function checkCMResponse(jsonData) {
 
 }
 
+const basePath = document.querySelector('base')?.getAttribute('href') || '';
+
 function refreshOptions() {
-  fetch("/data", {
+  fetch(`${basePath}data`, {
     method: "GET",
     headers: {
       "Accept": "application/json",
@@ -80,7 +82,7 @@ function handleOp(op) {
     dest: dest
   };
 
-  fetch("/"+op, {
+  fetch(`${basePath}${op}`, {
     method: "POST",
     headers: {
         "Content-Type": "application/json"

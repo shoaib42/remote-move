@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Move</title>
-    <link rel="stylesheet" type="text/css" href="/static/styles.css">
-    <script type="text/javascript" src="/static/app.js"></script>
+    <!-- Templated base path -->
+    <base href="{{ .BasePath }}/">
 
+    <link rel="stylesheet" type="text/css" href="static/styles.css">
+    <script type="text/javascript" src="static/app.js"></script>
 </head>
 
 <body>
@@ -17,7 +19,7 @@
             <div class="form-group">
                 <label for="sourceDirs">Source directory</label>
                 <select id="sourceDirs" name="sourceDirs">
-                    <option disabled selected value> -- select an source directory -- </option>
+                    <option disabled selected value> -- select a source directory -- </option>
                 </select>
             </div>
             <div class="form-group">
@@ -26,9 +28,9 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="destinationDirs">Destition Directory</label>
+                <label for="destinationDirs">Destination Directory</label>
                 <select id="destinationDirs" name="destinationDirs">
-                    <option disabled selected value> -- select an destination directory -- </option>
+                    <option disabled selected value> -- select a destination directory -- </option>
                 </select>
             </div>
             <div class="button-container">

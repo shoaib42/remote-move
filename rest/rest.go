@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"html/template"
 	"io"
 	"net"
 	"net/http"
@@ -71,8 +72,8 @@ func validateIPCIDR(allowedCIDRs []string) ([]string, error) {
 			}
 		}
 	}
-	if 0 == len(okCIDRs) {
-		return nil, errors.New("No valid CIDRs or ip provided")
+	if len(okCIDRs) == 0 {
+		return nil, errors.New("no valid CIDRs or IP provided")
 	}
 	return okCIDRs, nil
 }
@@ -80,16 +81,16 @@ func validateIPCIDR(allowedCIDRs []string) ([]string, error) {
 func validateServerBind(bindAddr string, bindPort string) error {
 
 	ip := net.ParseIP(bindAddr)
-	if nil == ip {
-		return errors.New("Invalid server bind address")
+	if ip == nil {
+		return errors.New("invalid server bind address")
 	}
 
 	port, err := strconv.Atoi(bindPort)
-	if nil != err {
-		return errors.New("Invalid server bind port: " + err.Error())
+	if err != nil {
+		return errors.New("invalid server bind port: " + err.Error())
 	}
 	if port < 1 || port > 65535 {
-		return errors.New("Invalid server bind port. Port number must be between 1 and 65535")
+		return errors.New("invalid server bind port. Port number must be between 1 and 65535")
 	}
 
 	return nil
@@ -97,17 +98,35 @@ func validateServerBind(bindAddr string, bindPort string) error {
 
 func New(indexFilePath, bindArr, port string, basePath string, allowedCIDRs []string, ioHelpers customio.IOHelpers) (RemoteMoveREST, error) {
 	file, err := os.Open(indexFilePath)
-	if err != nil {
+	if nil != err {
 		return nil, err
 	}
 	defer file.Close()
 
-	indexContent, err = io.ReadAll(file)
+	indexContentRaw, err := io.ReadAll(file)
+	if nil != err {
+		return nil, err
+	}
+
+	tmpl, err := template.New("index").Parse(string(indexContentRaw))
 	if err != nil {
 		return nil, err
 	}
 
-	if err = validateServerBind(bindArr, port); nil != err {
+	data := struct {
+		BasePath string
+	}{
+		BasePath: basePath,
+	}
+
+	var renderedContent bytes.Buffer
+	if err := tmpl.Execute(&renderedContent, data); err != nil {
+		return nil, err
+	}
+
+	indexContent = renderedContent.Bytes() // Store rendered content in global variable
+
+	if err = validateServerBind(bindArr, port); err != nil {
 		return nil, err
 	}
 
